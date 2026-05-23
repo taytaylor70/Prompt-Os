@@ -27,7 +27,7 @@ export default function SignupPage() {
     setLoading(true)
     setError(null)
 
-    const { error: err } = await supabase.auth.signUp({
+    const { data, error: err } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: name } },
@@ -39,6 +39,13 @@ export default function SignupPage() {
       return
     }
 
+    // Auto-confirm is on: session is returned immediately → go straight to app
+    if (data.session) {
+      router.push('/dashboard')
+      return
+    }
+
+    // Email confirmation required
     setSuccess(true)
     setLoading(false)
   }
