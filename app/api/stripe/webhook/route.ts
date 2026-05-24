@@ -23,11 +23,14 @@ function planFromPriceId(priceId: string): 'free' | 'pro' | 'team' {
 async function syncSubscription(sub: Stripe.Subscription) {
   const customerId    = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
   const supabase      = adminClient()
-  const priceId       = sub.items.data[0]?.price.id ?? ''
+  const item          = sub.items.data[0]
+  const priceId       = item?.price.id ?? ''
   const isActive      = ['active', 'trialing'].includes(sub.status)
   const plan          = isActive ? planFromPriceId(priceId) : 'free'
-  // Stripe types: current_period_end is unix seconds on the subscription object
-  const periodEnd     = (sub as unknown as { current_period_end?: number }).current_period_end
+  // current_period_end moved to subscription item in newer API versions;
+  // fall back to the subscription-level field for older payloads.
+  const periodEnd     = (item as unknown as { current_period_end?: number })?.current_period_end
+    ?? (sub as unknown as { current_period_end?: number }).current_period_end
   const plan_renews_at = periodEnd ? new Date(periodEnd * 1000).toISOString() : null
 
   const { error } = await supabase
