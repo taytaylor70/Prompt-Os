@@ -1,22 +1,10 @@
-/**
- * AI service factory.
- * Swap provider by setting NEXT_PUBLIC_AI_PROVIDER or adding real implementations.
- */
 import type { AIService } from './types'
 import { placeholderAI } from './placeholder'
-
-// Real provider implementations go here — same AIService interface, drop-in replaceable.
-// import { openaiService } from './openai'
-// import { anthropicService } from './anthropic'
+import { openaiService } from './openai'
 
 function getAIService(): AIService {
-  const provider = process.env.NEXT_PUBLIC_AI_PROVIDER ?? 'placeholder'
-
-  switch (provider) {
-    // case 'openai':     return openaiService
-    // case 'anthropic':  return anthropicService
-    default:           return placeholderAI
-  }
+  if (process.env.OPENAI_API_KEY) return openaiService
+  return placeholderAI
 }
 
 export const ai = getAIService()
