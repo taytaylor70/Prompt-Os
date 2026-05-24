@@ -8,9 +8,16 @@ import { TopNav } from '@/components/top-nav'
 import { Button } from '@/components/ui/button'
 import { Input, Select } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import type { TargetModel, OutputType, Tone } from '@/types'
+import { usePlan } from '@/hooks/use-plan'
+
+const PLAN_META: Record<'free'|'pro'|'team', { label: string; tagline: string; badgeVariant: 'default'|'accent'|'success' }> = {
+  free: { label: 'Free',     tagline: '25 prompt limit',        badgeVariant: 'default' },
+  pro:  { label: 'Pro',      tagline: 'Unlimited prompts',      badgeVariant: 'accent'  },
+  team: { label: 'Team',     tagline: 'Up to 10 team members',  badgeVariant: 'success' },
+}
 
 const MODEL_OPTIONS:  { value: TargetModel;  label: string }[] = [
   { value: 'gpt-4o',            label: 'GPT-4o' },
@@ -44,6 +51,22 @@ export default function SettingsPage() {
 
   const router   = useRouter()
   const supabase = createClient()
+  const planInfo = usePlan()
+  const planMeta = PLAN_META[planInfo.plan]
+  const [portalLoading, setPortalLoading] = useState(false)
+
+  async function openBillingPortal() {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error ?? 'Could not open portal')
+      window.location.href = data.url
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not open portal')
+      setPortalLoading(false)
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -122,7 +145,7 @@ export default function SettingsPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-300">{displayName || 'User'}</p>
                   <p className="text-xs text-slate-500">{email}</p>
-                  <Badge variant="accent" size="sm" className="mt-1">Free Plan</Badge>
+                  <Badge variant={planMeta.badgeVariant} size="sm" className="mt-1">{planMeta.label} Plan</Badge>
                 </div>
               </div>
 
@@ -197,19 +220,37 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm font-semibold text-slate-200">Current Plan</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Free · 25 prompt limit</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{planMeta.label} · {planMeta.tagline}</p>
+                    {planInfo.plan !== 'free' && planInfo.plan_renews_at && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {planInfo.plan_cancel_at_period_end
+                          ? <>Cancels on <span className="text-amber-400">{formatDate(planInfo.plan_renews_at)}</span></>
+                          : <>Renews on <span className="text-slate-300">{formatDate(planInfo.plan_renews_at)}</span></>
+                        }
+                      </p>
+                    )}
                   </div>
-                  <Badge variant="default">Free</Badge>
+                  <Badge variant={planMeta.badgeVariant}>{planMeta.label}</Badge>
                 </div>
-                <Link href="/pricing">
-                  <Button variant="outline" size="sm">Upgrade to Pro</Button>
-                </Link>
+                {planInfo.plan === 'free' ? (
+                  <Link href="/pricing">
+                    <Button variant="outline" size="sm">Upgrade to Pro</Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline" size="sm" loading={portalLoading} onClick={openBillingPortal}>
+                    Manage subscription
+                  </Button>
+                )}
               </div>
 
-              <div className="rounded-xl border border-dashed border-white/[0.07] p-5 text-center">
-                <p className="text-sm text-slate-500">No payment method on file</p>
-                <Button variant="ghost" size="sm" className="mt-2">Add payment method</Button>
-              </div>
+              {planInfo.plan === 'free' && (
+                <div className="rounded-xl border border-dashed border-white/[0.07] p-5 text-center">
+                  <p className="text-sm text-slate-500">No payment method on file</p>
+                  <Link href="/pricing">
+                    <Button variant="ghost" size="sm" className="mt-2">Add payment method</Button>
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

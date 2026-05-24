@@ -7,6 +7,13 @@ import {
   Zap, ChevronRight, Plus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { usePlan } from '@/hooks/use-plan'
+
+const PLAN_LABEL: Record<'free'|'pro'|'team', string> = {
+  free: 'Free Plan',
+  pro:  'Pro Plan',
+  team: 'Team Plan',
+}
 
 const NAV = [
   { label: 'Dashboard', href: '/dashboard',  icon: LayoutDashboard },
@@ -21,6 +28,7 @@ const BOTTOM_NAV = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { plan } = usePlan()
 
   return (
     <aside className="fixed left-0 top-0 h-full w-60 flex flex-col border-r border-white/[0.07] bg-[#07070f]/90 backdrop-blur-xl z-30">
@@ -103,9 +111,16 @@ export function Sidebar() {
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
             U
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-slate-300 truncate">My Account</p>
-            <p className="text-[10px] text-slate-600 truncate">Free Plan</p>
+          <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-300 truncate">My Account</p>
+              <p className="text-[10px] text-slate-600 truncate">{PLAN_LABEL[plan]}</p>
+            </div>
+            {plan !== 'free' && (
+              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent-600/20 text-accent-300 border border-accent/25">
+                {plan}
+              </span>
+            )}
           </div>
         </Link>
       </div>
