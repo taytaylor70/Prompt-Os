@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, Zap, Shield, BarChart3, Layers, Star, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { WaitlistForm } from '@/components/waitlist-form'
 
 const FEATURES = [
   {
@@ -61,11 +62,11 @@ export default function LandingPage() {
 
         <div className="flex items-center gap-2">
           <Link href="/login">
-            <Button variant="ghost" size="sm">Log in</Button>
+            <Button variant="ghost" size="sm">Sign in</Button>
           </Link>
-          <Link href="/signup">
-            <Button size="sm">Get started</Button>
-          </Link>
+          <a href="#waitlist">
+            <Button size="sm">Join waitlist</Button>
+          </a>
         </div>
       </nav>
 
@@ -80,7 +81,7 @@ export default function LandingPage() {
         <div className="relative max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 h-8 px-3 rounded-full border border-accent/25 bg-accent/5 text-accent-400 text-xs font-medium mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse" />
-            Now with real-time AI scoring
+            Launching soon · Reserve your spot
             <ChevronRight className="w-3 h-3" />
           </div>
 
@@ -95,19 +96,17 @@ export default function LandingPage() {
             Built for engineers, creators, and AI-native teams who demand precision.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/signup">
-              <Button size="lg" className="gap-2 pr-4">
-                Start building for free
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+          <WaitlistForm source="hero" className="mb-4" />
+
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <Link href="/dashboard" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+              View demo →
             </Link>
-            <Link href="/dashboard">
-              <Button variant="outline" size="lg">View demo</Button>
+            <span className="text-slate-700">·</span>
+            <Link href="/login" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+              Early access? Sign in
             </Link>
           </div>
-
-          <p className="text-xs text-slate-600 mt-5">No credit card required · Free plan forever</p>
         </div>
       </section>
 
@@ -178,23 +177,20 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 pb-24">
+      <section id="waitlist" className="px-6 pb-24 scroll-mt-24">
         <div className="max-w-2xl mx-auto text-center">
           <div className="rounded-2xl border border-accent/20 bg-accent/[0.05] p-12 relative overflow-hidden glow-accent">
             <div className="absolute inset-0 bg-accent-glow pointer-events-none" />
-            <Shield className="w-10 h-10 text-accent-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-slate-100 mb-3">
-              Ready to build smarter?
+            <Shield className="w-10 h-10 text-accent-400 mx-auto mb-4 relative" />
+            <h2 className="text-3xl font-bold text-slate-100 mb-3 relative">
+              Be first to build smarter
             </h2>
-            <p className="text-slate-400 mb-8 max-w-sm mx-auto">
-              Join thousands of builders shipping better AI products with Prompt OS.
+            <p className="text-slate-400 mb-8 max-w-sm mx-auto relative">
+              Get an invite the moment we open the doors. No spam, no waiting room games.
             </p>
-            <Link href="/signup">
-              <Button size="lg">
-                Get started for free
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
+            <div className="relative">
+              <WaitlistForm source="cta-bottom" variant="cta" />
+            </div>
           </div>
         </div>
       </section>
