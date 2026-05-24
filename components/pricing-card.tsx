@@ -8,10 +8,11 @@ import type { PricingTier } from '@/types'
 interface PricingCardProps {
   tier:      PricingTier
   yearly:    boolean
+  loading?:  boolean
   onSelect?: (tier: PricingTier) => void
 }
 
-export function PricingCard({ tier, yearly, onSelect }: PricingCardProps) {
+export function PricingCard({ tier, yearly, loading, onSelect }: PricingCardProps) {
   const price = yearly ? tier.price_yearly : tier.price_monthly
   const monthlyEquiv = yearly && tier.price_yearly > 0
     ? (tier.price_yearly / 12).toFixed(0)
@@ -64,6 +65,7 @@ export function PricingCard({ tier, yearly, onSelect }: PricingCardProps) {
       <Button
         variant={tier.highlighted ? 'primary' : 'outline'}
         className="w-full mb-6"
+        loading={loading}
         onClick={() => onSelect?.(tier)}
       >
         {tier.price_monthly === 0 ? 'Get started free' : `Start ${tier.name}`}

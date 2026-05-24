@@ -9,16 +9,35 @@ import type { PricingTier } from '@/types'
 import { cn } from '@/lib/utils'
 
 export default function PricingPage() {
-  const [yearly, setYearly] = useState(false)
+  const [yearly, setYearly]   = useState(false)
+  const [loading, setLoading] = useState<string | null>(null)
 
-  function handleSelect(tier: PricingTier) {
+  async function handleSelect(tier: PricingTier) {
     if (tier.id === 'free') {
       window.location.href = '/signup'
       return
     }
-    // In production: initiate Stripe Checkout
-    console.log('Stripe checkout for', tier.id, yearly ? 'yearly' : 'monthly')
-    alert(`Stripe checkout coming soon! Tier: ${tier.name}`)
+
+    setLoading(tier.id)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ tier: tier.id, yearly }),
+      })
+
+      if (res.status === 401) {
+        window.location.href = `/login?redirect=/pricing`
+        return
+      }
+
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error ?? 'Checkout failed')
+      window.location.href = data.url
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not start checkout')
+      setLoading(null)
+    }
   }
 
   return (
@@ -74,7 +93,13 @@ export default function PricingPage() {
         {/* Cards */}
         <div className="grid md:grid-cols-3 gap-5 items-start">
           {PRICING_TIERS.map(tier => (
-            <PricingCard key={tier.id} tier={tier} yearly={yearly} onSelect={handleSelect} />
+            <PricingCard
+              key={tier.id}
+              tier={tier}
+              yearly={yearly}
+              loading={loading === tier.id}
+              onSelect={handleSelect}
+            />
           ))}
         </div>
 
